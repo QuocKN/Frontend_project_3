@@ -20,7 +20,7 @@ const MainLayout = () => {
         }}
       >
         {/* Toolbar này để đẩy nội dung xuống dưới Topbar (nếu có) */}
-        <Toolbar />
+        {/* <Toolbar /> */}
 
         {/* Outlet là nơi Dashboard.jsx hoặc các trang con khác sẽ hiển thị */}
         <Outlet />

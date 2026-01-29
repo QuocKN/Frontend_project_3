@@ -1,8 +1,21 @@
 import { Card, CardContent, Typography, Box, Stack } from "@mui/material";
 
-const StatCard = ({ title, value, icon, color }) => {
+const StatCard = ({ title, value, icon, color, onClick }) => {
   return (
-    <Card sx={{ height: "100%" }}>
+    <Card
+      sx={{
+        height: "100%",
+        cursor: onClick ? "pointer" : "default",
+        transition: "all 0.3s ease",
+        "&:hover": onClick
+          ? {
+              transform: "translateY(-4px)",
+              boxShadow: 6,
+            }
+          : {},
+      }}
+      onClick={onClick}
+    >
       <CardContent>
         <Stack direction="row" spacing={2} alignItems="center">
           <Box

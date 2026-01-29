@@ -27,6 +27,7 @@ import {
   SyncAlt,
   CalendarMonth,
   AccountCircle,
+  Schedule,
 } from "@mui/icons-material";
 import { useNavigate, useLocation } from "react-router-dom";
 import api from "../apis/api";
@@ -53,15 +54,20 @@ const Sidebar = () => {
   const menuItems = [
     { text: "Tổng quan", icon: <DashboardIcon />, path: "/" },
     { text: "Quản lý Sinh trắc", icon: <Fingerprint />, path: "/biometrics" },
+    {
+      text: "Quản lý Scheduler",
+      icon: <Schedule />,
+      path: "/scheduler-control",
+    },
     { text: "Quản lý Thiết bị", icon: <SettingsRemote />, path: "/devices" },
     { text: "Quản lý Tòa nhà", icon: <Map />, path: "/buildings" },
-    { text: "Quản lý Người vào ra", icon: <Person />, path: "/employees" },
+    { text: "Quản lý Người truy cập", icon: <Person />, path: "/employees" },
     {
       text: "Quản lý Lịch làm việc",
       icon: <CalendarMonth />,
       path: "/schedules",
     },
-    { text: "Lịch sử Vào/Ra", icon: <History />, path: "/attendance" },
+    { text: "Lịch sử truy cập", icon: <History />, path: "/attendance" },
     { text: "Thống kê, Báo cáo", icon: <BarChart />, path: "/reports" },
   ];
 
@@ -100,17 +106,18 @@ const Sidebar = () => {
         [`& .MuiDrawer-paper`]: {
           width: drawerWidth,
           boxSizing: "border-box",
-          backgroundColor: "#1e293b", // Màu tối cho Sidebar chuyên nghiệp
+          background: "linear-gradient(180deg, #0f172a 0%, #1e293b 100%)",
           color: "#fff",
+          borderRight: "1px solid rgba(148, 163, 184, 0.1)",
         },
       }}
     >
       <Toolbar>
         <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-          <SyncAlt sx={{ color: "#38bdf8", fontSize: "1rem" }} />
+          <SyncAlt sx={{ color: "#60a5fa", fontSize: "1rem" }} />
           <Typography
             variant="h7"
-            sx={{ fontWeight: "bold", color: "#f8fafc" }}
+            sx={{ fontWeight: "bold", color: "#f1f5f9" }}
           >
             ACCESS CONTROL
           </Typography>
@@ -141,12 +148,16 @@ const Sidebar = () => {
                     borderRadius: 2,
                     mb: 0.5,
                     backgroundColor: isActive
-                      ? "rgba(56, 189, 248, 0.1)"
+                      ? "rgba(96, 165, 250, 0.15)"
                       : "transparent",
-                    color: isActive ? "#38bdf8" : "#94a3b8",
+                    color: isActive ? "#60a5fa" : "#cbd5e1",
+                    borderLeft: isActive
+                      ? "3px solid #60a5fa"
+                      : "3px solid transparent",
                     "&:hover": {
-                      backgroundColor: "rgba(255, 255, 255, 0.05)",
-                      color: "#fff",
+                      backgroundColor: "rgba(96, 165, 250, 0.1)",
+                      color: "#f1f5f9",
+                      borderLeft: "3px solid #60a5fa",
                     },
                   }}
                 >
@@ -155,7 +166,7 @@ const Sidebar = () => {
                       minWidth: 0,
                       mr: 2,
                       justifyContent: "center",
-                      color: isActive ? "#38bdf8" : "#64748b",
+                      color: isActive ? "#60a5fa" : "#94a3b8",
                     }}
                   >
                     {item.icon}
@@ -185,16 +196,18 @@ const Sidebar = () => {
               py: 1,
               mx: 1,
               borderRadius: 2,
-              backgroundColor: "rgba(255,255,255,0.05)",
+              background:
+                "linear-gradient(135deg, rgba(96, 165, 250, 0.08) 0%, rgba(59, 130, 246, 0.12) 100%)",
+              border: "1px solid rgba(96, 165, 250, 0.2)",
             }}
           >
             <Tooltip title="Tài khoản">
-              <IconButton onClick={handleMenuOpen} sx={{ color: "#e2e8f0" }}>
+              <IconButton onClick={handleMenuOpen} sx={{ color: "#f1f5f9" }}>
                 <AccountCircle />
               </IconButton>
             </Tooltip>
             <Box sx={{ flexGrow: 1 }}>
-              <Typography variant="body2" sx={{ color: "#e2e8f0" }}>
+              <Typography variant="body2" sx={{ color: "#f1f5f9" }}>
                 {displayName}
               </Typography>
               {displayEmail && (

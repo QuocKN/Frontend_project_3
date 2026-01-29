@@ -7,6 +7,7 @@ import {
   Paper,
   IconButton,
   Tooltip,
+  Chip,
 } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
 import { Add, Edit, Delete, Person } from "@mui/icons-material";
@@ -87,47 +88,62 @@ const EmployeeManagement = () => {
   };
 
   const columns = [
-    { field: "employeeCode", headerName: "Mã số", width: 120 },
+    {
+      field: "employeeCode",
+      headerName: "Mã số",
+      flex: 1,
+      minWidth: 100,
+      align: "center",
+      headerAlign: "center",
+    },
     {
       field: "fullName",
       headerName: "Họ và tên",
-      flex: 1,
-      renderCell: (p) => (
-        <Stack direction="row" alignItems="center" spacing={1}>
-          <Person color="action" fontSize="small" />
-          <Typography variant="body2">{p.value}</Typography>
-        </Stack>
-      ),
+      flex: 1.5,
+      minWidth: 150,
+      align: "center",
+      headerAlign: "center",
     },
-    { field: "department", headerName: "Phòng ban", width: 200 },
+    {
+      field: "identificationCode",
+      headerName: "CCCD/Hộ chiếu",
+      flex: 1.2,
+      minWidth: 130,
+      align: "center",
+      headerAlign: "center",
+    },
+    {
+      field: "department",
+      headerName: "Phòng ban",
+      flex: 1.2,
+      minWidth: 130,
+      align: "center",
+      headerAlign: "center",
+    },
     {
       field: "status",
       headerName: "Trạng thái",
-      width: 150,
+      flex: 1,
+      minWidth: 120,
+      align: "center",
+      headerAlign: "center",
       renderCell: (p) => (
-        <Box
-          sx={{
-            bgcolor: p.value ? "#e8f5e9" : "#ffebee",
-            color: p.value ? "#2e7d32" : "#c62828",
-            py: 0.5,
-            px: 1.5,
-            borderRadius: 1,
-            fontSize: "0.875rem",
-            fontWeight: 500,
-            textAlign: "center",
-            width: "fit-content",
-          }}
-        >
-          {p.value ? "Hoạt động" : "Ngưng hoạt động"}
-        </Box>
+        <Chip
+          label={p.value ? "Hoạt động" : "Ngung hoạt động"}
+          color={p.value ? "success" : "error"}
+          bgcolor={p.value ? "success" : "error"}
+        />
       ),
     },
+
     {
       field: "actions",
       headerName: "Thao tác",
       width: 120,
+      align: "center",
+      headerAlign: "center",
       renderCell: (params) => (
-        <Stack direction="row">
+        <Stack direction="row" justifyContent="center">
           <Tooltip title="Sửa">
             <IconButton
               size="small"
@@ -162,7 +178,7 @@ const EmployeeManagement = () => {
         sx={{ mb: 3 }}
       >
         <Typography variant="h4" fontWeight="bold">
-          Quản lý người vào ra
+          Quản lý người truy cập
         </Typography>
         <Button
           variant="contained"
@@ -171,17 +187,32 @@ const EmployeeManagement = () => {
             setFormState({ open: true, isEdit: false, data: null })
           }
         >
-          Thêm người vào ra
+          Thêm người truy cập
         </Button>
       </Stack>
 
-      <Paper sx={{ height: 500, width: "100%", boxShadow: 3 }}>
+      <Paper
+        sx={{
+          height: 500,
+          width: "100%",
+          boxShadow: 3,
+          borderRadius: 2,
+          overflow: "hidden",
+        }}
+      >
         <DataGrid
           rows={employees}
           columns={columns}
           loading={loading}
           disableSelectionOnClick
           getRowId={(row) => row.employeeCode} // Sử dụng employeeCode làm ID cho DataGrid
+          sx={{
+            "& .MuiDataGrid-cell": {
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            },
+          }}
         />
       </Paper>
 

@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import axios from "axios";
 import {
   Box,
   Typography,
@@ -24,54 +25,92 @@ import {
   Fingerprint,
   Face,
 } from "@mui/icons-material";
+import api from "../../apis/api";
 
 const Biometrics = () => {
   // 1. Dữ liệu mẫu
-  const [rows, setRows] = useState([
-    {
-      id: "E001",
-      name: "Nguyễn Văn A",
-      type: "Vân tay",
-      date: "2024-03-20",
-      status: "Hoạt động",
-      img: "https://img.freepik.com/premium-vector/biometric-identification-fingerprint-scanning-system-isolated-white-background_165488-1008.jpg",
-    },
-    {
-      id: "E002",
-      name: "Trần Thị B",
-      type: "Khuôn mặt",
-      date: "2024-03-21",
-      status: "Hoạt động",
-      img: "https://cdn-icons-png.flaticon.com/512/3135/3135715.png",
-    },
-  ]);
+  const [rows, setRows] = useState([]);
 
   // 2. States quản lý Dialog
   const [previewOpen, setPreviewOpen] = useState(false); // Cửa sổ xem chi tiết
   const [formOpen, setFormOpen] = useState(false); // Cửa sổ thêm/sửa thông tin
   const [selectedBio, setSelectedBio] = useState(null); // Dữ liệu đang chọn để xem/sửa
-  const [formData, setFormData] = useState({ name: "", type: "Vân tay" });
+  const [formData, setFormData] = useState({
+    name: "",
+    type: "Khuôn mặt",
+    embedding: [],
+    faceImage: null,
+  });
 
-  // 3. Xử lý Xem chi tiết (Use Case: Xem danh sách sinh trắc)
+  // 3. Lấy dữ liệu từ backend
+  useEffect(() => {
+    api
+      .get("/faceembeddings")
+      .then((response) => {
+        const transformedData = response.data.data.map((item) => ({
+          id: item.id,
+          name: item.employee.fullName,
+          type: "Khuôn mặt", // Giả sử tất cả đều là sinh trắc khuôn mặt
+          code: item.employee.employeeCode,
+          embedding: item.embedding,
+          faceImage: `data:image/jpeg;base64,${item.faceImage}`, // Convert byte[] to base64 image
+          createdAt: new Date(item.createdAt).toLocaleDateString(),
+          createdAtTimestamp: new Date(item.createdAt).getTime(), // Thêm timestamp để so sánh
+        }));
+
+        // Lọc để chỉ giữ lại bản ghi mới nhất cho mỗi mã nhân viên
+        const uniqueByEmployeeCode = {};
+        transformedData.forEach((item) => {
+          const existingItem = uniqueByEmployeeCode[item.code];
+          // Nếu chưa có hoặc bản ghi hiện tại mới hơn thì giữ lại
+          if (
+            !existingItem ||
+            item.createdAtTimestamp > existingItem.createdAtTimestamp
+          ) {
+            uniqueByEmployeeCode[item.code] = item;
+          }
+        });
+
+        // Chuyển object thành array
+        const filteredData = Object.values(uniqueByEmployeeCode);
+        setRows(filteredData);
+      })
+      .catch((error) => {
+        console.error("Error fetching face embeddings:", error);
+      });
+  }, []);
+
+  // 4. Xử lý Xem chi tiết (Use Case: Xem danh sách sinh trắc)
   const handleViewBio = (row) => {
     setSelectedBio(row);
     setPreviewOpen(true);
   };
 
-  // 4. Xử lý Thêm mới (Use Case: Thêm sinh trắc)
+  // 5. Xử lý Thêm mới (Use Case: Thêm sinh trắc)
   const handleOpenAdd = () => {
     setSelectedBio(null);
-    setFormData({ name: "", type: "Vân tay" });
+    setFormData({
+      name: "",
+      type: "Khuôn mặt",
+      embedding: [],
+      faceImage: null,
+    });
     setFormOpen(true);
   };
 
-  // 5. Xử lý Chỉnh sửa (Use Case: Cập nhật sinh trắc)
+  // 6. Xử lý Chỉnh sửa (Use Case: Cập nhật sinh trắc)
   const handleOpenEdit = (row) => {
     setSelectedBio(row);
-    setFormData({ name: row.name, type: row.type });
+    setFormData({
+      name: row.name,
+      type: row.type,
+      embedding: row.embedding,
+      faceImage: row.faceImage,
+    });
     setFormOpen(true);
   };
 
+  // 7. Xử lý Lưu thông tin (Thêm mới hoặc Cập nhật)
   const handleSave = () => {
     if (selectedBio) {
       // Logic Cập nhật
@@ -89,14 +128,24 @@ const Biometrics = () => {
           ...formData,
           date: new Date().toISOString().split("T")[0],
           status: "Hoạt động",
-          img:
-            formData.type === "Vân tay"
-              ? "https://img.freepik.com/premium-vector/biometric-identification-fingerprint-scanning-system-isolated-white-background_165488-1008.jpg"
-              : "https://cdn-icons-png.flaticon.com/512/3135/3135715.png",
         },
       ]);
     }
     setFormOpen(false);
+  };
+
+  // 8. Xử lý Xóa sinh trắc
+  const handleDelete = (id) => {
+    if (window.confirm("Bạn có chắc chắn muốn xóa sinh trắc này không?")) {
+      api
+        .delete(`/faceembedding/${id}`)
+        .then(() => {
+          setRows(rows.filter((row) => row.id !== id));
+        })
+        .catch((error) => {
+          console.error("Error deleting face embedding:", error);
+        });
+    }
   };
 
   const columns = [
@@ -107,6 +156,8 @@ const Biometrics = () => {
       sortable: false,
       filterable: false,
       disableColumnMenu: true,
+      align: "center",
+      headerAlign: "center",
       renderCell: (params) => {
         // 1. Lấy danh sách ID đã được Sort/Filter đang hiển thị
         const sortedIds = gridSortedRowIdsSelector(params.api.state);
@@ -121,50 +172,59 @@ const Biometrics = () => {
     {
       field: "name",
       headerName: "Họ và tên",
-      flex: 1,
-      renderCell: (params) => (
-        <Stack direction="row" spacing={2} alignItems="center">
-          <Avatar
-            sx={{
-              width: 30,
-              height: 30,
-              bgcolor: "primary.main",
-              fontSize: "0.8rem",
-            }}
-          >
-            {params.value.charAt(0)}
-          </Avatar>
-          <Typography variant="body2">{params.value}</Typography>
-        </Stack>
-      ),
+      flex: 1.5,
+      minWidth: 150,
+      align: "center",
+      headerAlign: "center",
     },
-    { field: "id", headerName: "ID", width: 120 },
+    {
+      field: "code",
+      headerName: "Mã NV",
+      flex: 1,
+      minWidth: 100,
+      align: "center",
+      headerAlign: "center",
+    },
 
-    { field: "type", headerName: "Loại", width: 120 },
+    {
+      field: "type",
+      headerName: "Loại",
+      flex: 1,
+      minWidth: 100,
+      align: "center",
+      headerAlign: "center",
+    },
+    {
+      field: "createdAt",
+      headerName: "Ngày cập nhật",
+      flex: 1.2,
+      minWidth: 120,
+      align: "center",
+      headerAlign: "center",
+    },
     {
       field: "actions",
       headerName: "Thao tác",
-      width: 180,
+      width: 150,
+      align: "center",
+      headerAlign: "center",
       renderCell: (params) => (
-        <Stack direction="row" spacing={1}>
+        <Stack direction="row" spacing={1} justifyContent="center">
           <Tooltip title="Xem chi tiết">
             <IconButton color="info" onClick={() => handleViewBio(params.row)}>
               <Visibility fontSize="small" />
             </IconButton>
           </Tooltip>
-          <Tooltip title="Chỉnh sửa">
+          {/* <Tooltip title="Chỉnh sửa">
             <IconButton
               color="primary"
               onClick={() => handleOpenEdit(params.row)}
             >
               <Edit fontSize="small" />
             </IconButton>
-          </Tooltip>
+          </Tooltip> */}
           <Tooltip title="Xóa">
-            <IconButton
-              color="error"
-              onClick={() => setRows(rows.filter((r) => r.id !== params.id))}
-            >
+            <IconButton color="error" onClick={() => handleDelete(params.id)}>
               <Delete fontSize="small" />
             </IconButton>
           </Tooltip>
@@ -174,7 +234,7 @@ const Biometrics = () => {
   ];
 
   return (
-    <Box>
+    <Box sx={{ p: 3 }}>
       <Stack
         direction="row"
         justifyContent="space-between"
@@ -185,13 +245,32 @@ const Biometrics = () => {
           Quản lý Sinh trắc
         </Typography>
         {/* Đã thêm onClick ở đây */}
-        <Button variant="contained" startIcon={<Add />} onClick={handleOpenAdd}>
+        {/* <Button variant="contained" startIcon={<Add />} onClick={handleOpenAdd}>
           Thêm sinh trắc
-        </Button>
+        </Button> */}
       </Stack>
 
-      <Paper sx={{ height: 450, width: "100%", boxShadow: 3 }}>
-        <DataGrid rows={rows} columns={columns} disableSelectionOnClick />
+      <Paper
+        sx={{
+          height: 500,
+          width: "100%",
+          boxShadow: 3,
+          borderRadius: 2,
+          overflow: "hidden",
+        }}
+      >
+        <DataGrid
+          rows={rows}
+          columns={columns}
+          disableSelectionOnClick
+          sx={{
+            "& .MuiDataGrid-cell": {
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            },
+          }}
+        />
       </Paper>
 
       {/* DIALOG 1: Xem chi tiết */}
@@ -201,30 +280,24 @@ const Biometrics = () => {
         maxWidth="xs"
         fullWidth
       >
-        <DialogTitle sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-          {selectedBio?.type === "Vân tay" ? (
-            <Fingerprint color="primary" />
-          ) : (
-            <Face color="primary" />
-          )}
-          Chi tiết: {selectedBio?.name}
-        </DialogTitle>
-        <DialogContent dividers sx={{ textAlign: "center" }}>
+        <DialogTitle>Chi tiết: {selectedBio?.name}</DialogTitle>
+        <DialogContent>
+          <Typography>Mã NV: {selectedBio?.code}</Typography>
+          <Typography>Loại: {selectedBio?.type}</Typography>
+          <Typography>Ngày cập nhật: {selectedBio?.createdAt}</Typography>
           <Box
-            component="img"
-            src={selectedBio?.img}
-            sx={{ width: "100%", maxHeight: 200, objectFit: "contain", mb: 2 }}
-          />
-          <Box sx={{ textAlign: "left" }}>
-            <Typography variant="body2">
-              <strong>ID:</strong> {selectedBio?.id}
-            </Typography>
-            <Typography variant="body2">
-              <strong>Ngày đăng ký:</strong> {selectedBio?.date}
-            </Typography>
-            <Typography variant="body2">
-              <strong>Trạng thái:</strong> {selectedBio?.status}
-            </Typography>
+            sx={{
+              mt: 2,
+              display: "flex",
+              justifyContent: "center",
+            }}
+          >
+            <Avatar
+              variant="rounded"
+              src={selectedBio?.faceImage}
+              alt={selectedBio?.name}
+              sx={{ width: 200, height: 200 }}
+            />
           </Box>
         </DialogContent>
         <DialogActions>
@@ -242,7 +315,7 @@ const Biometrics = () => {
         <DialogTitle>
           {selectedBio ? "Cập nhật sinh trắc" : "Đăng ký sinh trắc mới"}
         </DialogTitle>
-        <DialogContent dividers>
+        <DialogContent>
           <TextField
             fullWidth
             label="Họ và tên"

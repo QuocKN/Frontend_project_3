@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import MainLayout from "./layout/MainLayout";
 import Dashboard from "./pages/Dashboard/Dashboard";
 import Biometrics from "./pages/Biometrics/Biometrics";
+import SchedulerControl from "./pages/Biometrics/SchedulerControl";
 import DeviceManagement from "./pages/DeviceManagement/DeviceManagement";
 import AccessManagement from "./pages/AccessManagement/AccessManagement";
 import BuildingManagement from "./pages/BuildingManagement/BuildingManagement";
@@ -11,6 +12,7 @@ import Login from "./pages/Login/Login";
 import RequireAuth from "./components/RequireAuth";
 import { Toaster } from "react-hot-toast";
 import EmployeeManagement from "./pages/EmployeeManagement/EmployeeManagement";
+import Reports from "./pages/Reports/Reports";
 
 function App() {
   return (
@@ -35,13 +37,13 @@ function App() {
             <Route index element={<Dashboard />} />
             {/* Các route tương ứng với sơ đồ Use Case */}
             <Route path="biometrics" element={<Biometrics />} />
+            <Route path="scheduler-control" element={<SchedulerControl />} />
             <Route path="devices" element={<DeviceManagement />} />
             <Route path="attendance" element={<AccessManagement />} />
             <Route path="buildings" element={<BuildingManagement />} />
             <Route path="schedules" element={<ScheduleManagement />} />
             <Route path="employees" element={<EmployeeManagement />} />
-            <Route path="reports" element={<Dashboard />} />{" "}
-            {/* Dùng chung Dashboard cho báo cáo */}
+            <Route path="reports" element={<Reports />} />
             {/* Route bắt lỗi 404 - quay về Dashboard */}
             <Route path="*" element={<Navigate to="/" replace />} />
           </Route>

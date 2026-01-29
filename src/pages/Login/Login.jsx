@@ -62,9 +62,8 @@ const Login = () => {
         if (accessToken) {
           localStorage.setItem("access_token", accessToken);
           // Set header Authorization cho các request sau
-          api.defaults.headers.common[
-            "Authorization"
-          ] = `Bearer ${accessToken}`;
+          api.defaults.headers.common["Authorization"] =
+            `Bearer ${accessToken}`;
         }
         if (refreshToken) {
           localStorage.setItem("refresh_token", refreshToken);
@@ -124,7 +123,7 @@ const Login = () => {
           <Typography
             variant="h4"
             fontWeight="bold"
-            color="primary"
+            color="#21334f"
             gutterBottom
           >
             Đăng Nhập
@@ -179,27 +178,14 @@ const Login = () => {
                   fontWeight: "bold",
                   mt: 2,
                   textTransform: "none",
+                  color: "#f1f5f9",
+                  backgroundColor: "#21334f",
                 }}
               >
                 {loading ? "Đang đăng nhập..." : "Đăng Nhập"}
               </Button>
             </Stack>
           </Box>
-
-          <Stack direction="row" spacing={0.5} sx={{ mt: 3 }}>
-            <Typography variant="body2" color="text.secondary">
-              Chưa có tài khoản?
-            </Typography>
-            <Link
-              component={RouterLink}
-              to="/register"
-              variant="body2"
-              underline="hover"
-              fontWeight="bold"
-            >
-              Đăng ký ngay
-            </Link>
-          </Stack>
         </Paper>
       </Container>
     </Box>

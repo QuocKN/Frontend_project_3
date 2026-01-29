@@ -18,6 +18,8 @@ import {
 import { Add, Edit, Delete, EventNote } from "@mui/icons-material";
 import ScheduleDialog from "./Dialogs/ScheduleDialog.jsx";
 import api from "../../apis/api";
+import dayjs from "dayjs";
+import { toast } from "react-hot-toast";
 
 /* ===== STT theo thứ tự sort ===== */
 const RenderSTT = (params) => {
@@ -64,24 +66,37 @@ const ScheduleManagement = () => {
       }
     } catch (error) {
       console.error("Failed to delete schedule:", error);
-      alert(`Lỗi: ${error.response?.data?.message || "Đã xảy ra lỗi khi xóa lịch."}`);
+      alert(
+        `Lỗi: ${error.response?.data?.message || "Đã xảy ra lỗi khi xóa lịch."}`
+      );
     }
   };
 
   const handleSave = async (formData) => {
+    const tId = toast.loading("Đang lưu...");
     try {
       const isEdit = dialogState.isEdit;
       const url = isEdit ? `/schedules/${dialogState.data.id}` : "/schedules";
 
+      // Validate and initialize specificDate, startTime, and endTime
+      const specificDate = formData.specificDate
+        ? dayjs(formData.specificDate)
+        : null;
+      const startTime = formData.startTime ? dayjs(formData.startTime) : null;
+      const endTime = formData.endTime ? dayjs(formData.endTime) : null;
+
       // Transform form data to backend model
       const payload = {
-        employeeCode: formData.employee, // Note: Ensure Dialog provides code, not name
-        roomCode: formData.area, // Gửi roomCode để backend tìm bằng findByCode
-        // Assuming specific date for now based on Dialog structure
-        specificDate: formData.start.format("YYYY-MM-DD"),
-        startTime: formData.start.format("HH:mm:ss"),
-        endTime: formData.end.format("HH:mm:ss"),
-        weekday: null, // Chưa hỗ trợ lịch định kỳ từ dialog hiện tại
+        employeeCode: formData.employee, // Ensure Dialog provides code, not name
+        roomCode: formData.area, // Send roomCode for backend lookup
+        specificDate: specificDate?.isValid()
+          ? specificDate.format("YYYY-MM-DD")
+          : null,
+        startTime: startTime?.isValid() ? startTime.format("HH:mm") : null,
+        endTime: endTime?.isValid() ? endTime.format("HH:mm") : null,
+        weekday: formData.weekday || null, // Support recurring schedules
+        effectiveFrom: formData.effectiveFrom || null,
+        effectiveTo: formData.effectiveTo || null,
       };
 
       let response;
@@ -94,13 +109,13 @@ const ScheduleManagement = () => {
       if (response.data && response.data.success) {
         fetchSchedules();
         setDialogState({ ...dialogState, open: false });
-        alert(response.data.message);
+        toast.success(response.data.message || "Thành công", { id: tId });
       } else {
-        alert(`Lỗi: ${response.data?.message || "Thao tác thất bại"}`);
+        toast.error(response.data?.message || "Thao tác thất bại", { id: tId });
       }
     } catch (error) {
       console.error("Save error:", error);
-      alert(`Lỗi: ${error.response?.data?.message || "Có lỗi xảy ra khi lưu."}`);
+      toast.error("Có lỗi xảy ra khi lưu.", { id: tId });
     }
   };
 
@@ -108,15 +123,19 @@ const ScheduleManagement = () => {
     {
       field: "stt",
       headerName: "STT",
-      width: 60,
+      width: 70,
       sortable: false,
+      align: "center",
+      headerAlign: "center",
       renderCell: RenderSTT,
     },
     {
       field: "employee",
       headerName: "Nhân sự",
-      flex: 1.2,
-      minWidth: 220,
+      flex: 1.5,
+      minWidth: 180,
+      align: "center",
+      headerAlign: "center",
       valueGetter: (value, row) =>
         row?.employee?.fullName || row?.employee?.employeeCode,
       renderCell: (p) => (
@@ -124,9 +143,9 @@ const ScheduleManagement = () => {
           direction="row"
           spacing={1}
           alignItems="center"
+          justifyContent="center"
           sx={{ width: "100%" }}
         >
-          <EventNote fontSize="small" color="primary" />
           <Tooltip title={p.value}>
             <Typography
               variant="body2"
@@ -145,26 +164,33 @@ const ScheduleManagement = () => {
     {
       field: "room",
       headerName: "Khu vực",
-      flex: 1,
-      minWidth: 160,
+      flex: 1.2,
+      minWidth: 140,
+      align: "center",
+      headerAlign: "center",
       valueGetter: (value, row) => row?.room?.name || "N/A",
     },
     {
       field: "dateInfo",
       headerName: "Ngày / Thứ",
       flex: 1,
-      minWidth: 140,
+      minWidth: 120,
+      align: "center",
+      headerAlign: "center",
       valueGetter: (value, row) => row?.specificDate || row?.weekday,
       renderCell: (params) => {
         if (params.row.weekday) {
-          return (
-            <Chip
-              label={params.row.weekday}
-              size="small"
-              color="info"
-              variant="outlined"
-            />
-          );
+          const dayMap = {
+            MONDAY: "Thứ hai",
+            TUESDAY: "Thứ ba",
+            WEDNESDAY: "Thứ tư",
+            THURSDAY: "Thứ năm",
+            FRIDAY: "Thứ sáu",
+            SATURDAY: "Thứ bảy",
+            SUNDAY: "Chủ nhật",
+          };
+          const displayDay = dayMap[params.row.weekday] || params.row.weekday;
+          return <Typography variant="body2">{displayDay}</Typography>;
         }
         return (
           <Typography variant="body2">{params.row.specificDate}</Typography>
@@ -174,17 +200,34 @@ const ScheduleManagement = () => {
     {
       field: "startTime",
       headerName: "Bắt đầu",
-      width: 120,
+      flex: 0.8,
+      minWidth: 100,
+      align: "center",
+      headerAlign: "center",
+      valueGetter: (value, row) => {
+        if (!row?.startTime) return "";
+        return row.startTime.substring(0, 5); // Only show HH:mm
+      },
     },
     {
       field: "endTime",
       headerName: "Kết thúc",
-      width: 120,
+      flex: 0.8,
+      minWidth: 100,
+      align: "center",
+      headerAlign: "center",
+      valueGetter: (value, row) => {
+        if (!row?.endTime) return "";
+        return row.endTime.substring(0, 5); // Only show HH:mm
+      },
     },
     {
       field: "type",
       headerName: "Loại lịch",
-      width: 130,
+      flex: 1,
+      minWidth: 110,
+      align: "center",
+      headerAlign: "center",
       renderCell: (p) => {
         const isRecurring = !!p.row.weekday;
         return (
@@ -198,12 +241,38 @@ const ScheduleManagement = () => {
       },
     },
     {
+      field: "effectivePeriod",
+      headerName: "Thời gian hiệu lực",
+      flex: 1.5,
+      minWidth: 180,
+      align: "center",
+      headerAlign: "center",
+      renderCell: (params) => {
+        if (!params.row.weekday) {
+          return (
+            <Typography variant="body2" color="text.disabled">
+              —
+            </Typography>
+          );
+        }
+        const from = params.row.effectiveFrom || "...";
+        const to = params.row.effectiveTo || "...";
+        return (
+          <Typography variant="body2" sx={{ fontSize: "0.875rem" }}>
+            {from} → {to}
+          </Typography>
+        );
+      },
+    },
+    {
       field: "actions",
       headerName: "Thao tác",
       width: 130,
       sortable: false,
+      align: "center",
+      headerAlign: "center",
       renderCell: (params) => (
-        <Stack direction="row" spacing={1}>
+        <Stack direction="row" spacing={1} justifyContent="center">
           <Tooltip title="Cập nhật lịch">
             <IconButton
               size="small"
@@ -244,7 +313,7 @@ const ScheduleManagement = () => {
       >
         <Box>
           <Typography variant="h4" fontWeight="bold">
-            Quản lý Lịch làm việc
+            Quản lý lịch làm việc
           </Typography>
           <Typography variant="body2" color="text.secondary">
             Điều phối nhân sự và thời gian truy cập các khu vực
@@ -262,7 +331,15 @@ const ScheduleManagement = () => {
       </Stack>
 
       {/* ===== Table ===== */}
-      <Paper sx={{ height: 520, width: "100%", borderRadius: 2 }}>
+      <Paper
+        sx={{
+          height: 480,
+          width: "100%",
+          boxShadow: 4,
+          borderRadius: 2,
+          overflow: "hidden",
+        }}
+      >
         <DataGrid
           rows={schedules}
           columns={columns}
@@ -277,6 +354,7 @@ const ScheduleManagement = () => {
             "& .MuiDataGrid-cell": {
               display: "flex",
               alignItems: "center",
+              justifyContent: "center",
             },
           }}
         />

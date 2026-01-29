@@ -16,26 +16,28 @@ import toast from "react-hot-toast";
 
 const EmployeeFormDialog = ({ open, onClose, onSave, data, isEdit }) => {
   const [formData, setFormData] = useState({
-    employeeCode: "",
     fullName: "",
     department: "",
     status: true,
+    identificationCode: "", // Keep other fields
   });
 
   useEffect(() => {
     if (data && isEdit) {
       setFormData({
-        employeeCode: data.employeeCode || "",
         fullName: data.fullName || "",
         department: data.department || "",
+        employeeCode: data.employeeCode || "",
         status: data.status !== undefined ? data.status : true,
+        identificationCode: data.identificationCode || "", // Keep other fields
       });
     } else {
       setFormData({
-        employeeCode: "",
         fullName: "",
         department: "",
+        employeeCode: "",
         status: true,
+        identificationCode: "", // Keep other fields
       });
     }
   }, [data, isEdit, open]);
@@ -46,8 +48,8 @@ const EmployeeFormDialog = ({ open, onClose, onSave, data, isEdit }) => {
   };
 
   const handleSubmit = () => {
-    if (!formData.employeeCode.trim() || !formData.fullName.trim()) {
-      toast.error("Vui lòng nhập Mã người vào ra và Họ tên!");
+    if (!formData.identificationCode.trim() || !formData.fullName.trim()) {
+      toast.error("Vui lòng nhập Mã định danh cá nhân và Họ tên!");
       return;
     }
     onSave(formData);
@@ -64,9 +66,9 @@ const EmployeeFormDialog = ({ open, onClose, onSave, data, isEdit }) => {
             <TextField
               fullWidth
               required
-              name="employeeCode"
-              label="Mã người vào ra"
-              value={formData.employeeCode}
+              name="identificationCode"
+              label="CCCD/Hộ chiếu"
+              value={formData.identificationCode}
               onChange={handleChange}
               disabled={isEdit} // Không cho sửa ID khi update
               size="small"

@@ -97,13 +97,36 @@ const FloorManagementDialog = ({ open, onClose, building }) => {
   };
 
   const columns = [
-    { field: "floorNumber", headerName: "Số", width: 70, align: "center" },
-    { field: "code", headerName: "Mã tầng", width: 100 },
-    { field: "name", headerName: "Tên tầng", flex: 1 },
+    {
+      field: "floorNumber",
+      headerName: "Số",
+      width: 70,
+      align: "center",
+      headerAlign: "center",
+    },
+    {
+      field: "code",
+      headerName: "Mã tầng",
+      flex: 1,
+      minWidth: 100,
+      align: "center",
+      headerAlign: "center",
+    },
+    {
+      field: "name",
+      headerName: "Tên tầng",
+      flex: 1.5,
+      minWidth: 120,
+      align: "center",
+      headerAlign: "center",
+    },
     {
       field: "status",
       headerName: "Trạng thái",
-      width: 120,
+      flex: 1,
+      minWidth: 100,
+      align: "center",
+      headerAlign: "center",
       renderCell: (p) => (
         <Typography
           variant="body2"
@@ -120,8 +143,10 @@ const FloorManagementDialog = ({ open, onClose, building }) => {
       field: "actions",
       headerName: "Thao tác",
       width: 150,
+      align: "center",
+      headerAlign: "center",
       renderCell: (params) => (
-        <Stack direction="row">
+        <Stack direction="row" justifyContent="center">
           <Tooltip title="Quản lý phòng">
             <IconButton
               size="small"
@@ -200,6 +225,13 @@ const FloorManagementDialog = ({ open, onClose, building }) => {
                   disableSelectionOnClick
                   getRowId={(row) => row.id}
                   hideFooter
+                  sx={{
+                    "& .MuiDataGrid-cell": {
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    },
+                  }}
                 />
               </Box>
             </>

@@ -7,6 +7,7 @@ import {
   Paper,
   IconButton,
   Tooltip,
+  Chip,
 } from "@mui/material";
 import {
   DataGrid,
@@ -47,7 +48,7 @@ const BuildingManagement = () => {
     building: null,
   });
 
-  // 🟩 API: Lấy danh sách (getAll)
+  // API: Lấy danh sách (getAll)
   const fetchBuildings = async () => {
     setLoading(true);
     try {
@@ -70,7 +71,7 @@ const BuildingManagement = () => {
     fetchBuildings();
   }, []);
 
-  // API: Xóa khu vực (delete)
+  // API: Xóa tòa nhà (delete)
   const handleDelete = async (id) => {
     if (window.confirm("Bạn có chắc chắn muốn xóa tòa nhà này?")) {
       const tId = toast.loading("Đang xóa...");
@@ -92,7 +93,7 @@ const BuildingManagement = () => {
     }
   };
 
-  // 🟦 API: Tạo mới/Cập nhật
+  // API: Tạo mới/Cập nhật
   const handleSave = async (formData) => {
     const loadingToast = toast.loading("Đang xử lý...");
     try {
@@ -116,26 +117,59 @@ const BuildingManagement = () => {
       toast.error(finalMessage, { id: loadingToast });
     }
   };
+  const handleUpdate = async (id, formData) => {
+    const loadingToast = toast.loading("Đang xử lý...");
+    try {
+      const response = await api.put(`/buildings/${id}`, formData);
+      // Nếu thành công (mã 2xx)
+      if (response.data.success) {
+        toast.success(response.data.message, { id: loadingToast });
+        fetchBuildings();
+        setFormState({ ...formState, open: false });
+      }
+    } catch (error) {
+      // Nếu có lỗi (mã 400, 500, v.v.)
+      console.error("Lỗi API:", error);
+      // Lấy message từ JSON mà GlobalExceptionHandler trả về
+      const serverErrorMessage = error.response?.data?.message;
+      const finalMessage =
+        serverErrorMessage || "Lỗi hệ thống, vui lòng thử lại!";
+      toast.error(finalMessage, { id: loadingToast });
+    }
+  };
 
   const columns = [
     {
       field: "stt",
       headerName: "STT",
-      width: 60,
+      width: 70,
       renderCell: RenderSTT,
       sortable: false,
+      align: "center",
+      headerAlign: "center",
     },
     {
       field: "code",
       headerName: "Mã tòa nhà",
-      width: 120,
+      flex: 1,
+      minWidth: 100,
+      align: "center",
+      headerAlign: "center",
     },
     {
       field: "name",
       headerName: "Tên tòa nhà",
-      flex: 1,
+      flex: 1.5,
+      minWidth: 150,
+      align: "center",
+      headerAlign: "center",
       renderCell: (p) => (
-        <Stack direction="row" alignItems="center" spacing={1}>
+        <Stack
+          direction="row"
+          alignItems="center"
+          spacing={1}
+          justifyContent="center"
+        >
           <Map color="action" fontSize="small" /> <strong>{p.value}</strong>
         </Stack>
       ),
@@ -143,35 +177,35 @@ const BuildingManagement = () => {
     {
       field: "address",
       headerName: "Địa chỉ",
-      flex: 1,
+      flex: 1.5,
+      minWidth: 150,
+      align: "center",
+      headerAlign: "center",
     },
     {
       field: "status",
       headerName: "Trạng thái",
-      width: 120,
+      flex: 1,
+      minWidth: 120,
+      align: "center",
+      headerAlign: "center",
       renderCell: (p) => (
-        <Box
-          sx={{
-            bgcolor: p.value === "active" ? "#e8f5e9" : "#ffebee",
-            color: p.value === "active" ? "#2e7d32" : "#c62828",
-            py: 0.5,
-            px: 1.5,
-            borderRadius: 1,
-            fontSize: "0.875rem",
-            fontWeight: 500,
-            textAlign: "center",
-          }}
-        >
-          {p.value === "active" ? "Hoạt động" : "Không hoạt động"}
-        </Box>
+        <Chip
+          label={p.value === "active" ? "Hoạt động" : "Ngưng hoạt động"}
+          color={p.value === "active" ? "success" : "error"}
+          bgcolor={p.value === "active" ? "success" : "error"}
+        />
       ),
     },
+
     {
       field: "actions",
       headerName: "Thao tác",
       width: 220,
+      align: "center",
+      headerAlign: "center",
       renderCell: (params) => (
-        <Stack direction="row" spacing={1}>
+        <Stack direction="row" spacing={1} justifyContent="center">
           <Tooltip title="Xem chi tiết">
             <IconButton
               size="small"
@@ -239,12 +273,27 @@ const BuildingManagement = () => {
         </Button>
       </Stack>
 
-      <Paper sx={{ height: 500, width: "100%", boxShadow: 3 }}>
+      <Paper
+        sx={{
+          height: 500,
+          width: "100%",
+          boxShadow: 3,
+          borderRadius: 2,
+          overflow: "hidden",
+        }}
+      >
         <DataGrid
           rows={buildings}
           columns={columns}
           loading={loading}
           disableSelectionOnClick
+          sx={{
+            "& .MuiDataGrid-cell": {
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            },
+          }}
         />
       </Paper>
 
@@ -254,6 +303,7 @@ const BuildingManagement = () => {
         data={formState.data}
         onClose={() => setFormState({ ...formState, open: false })}
         onSave={handleSave} // Truyền hàm save vào dialog
+        onUpdate={handleUpdate}
       />
 
       <BuildingDetailDialog

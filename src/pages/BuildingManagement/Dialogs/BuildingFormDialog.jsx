@@ -14,7 +14,14 @@ import {
 } from "@mui/material";
 import toast from "react-hot-toast";
 
-const AreaFormDialog = ({ open, onClose, onSave, data, isEdit }) => {
+const BuildingFormDialog = ({
+  open,
+  onClose,
+  onSave,
+  onUpdate,
+  data,
+  isEdit,
+}) => {
   const [formData, setFormData] = useState({
     code: "",
     name: "",
@@ -58,13 +65,17 @@ const AreaFormDialog = ({ open, onClose, onSave, data, isEdit }) => {
       toast.error("Vui lòng nhập đầy đủ Mã tòa nhà, Tên tòa nhà và Địa chỉ!");
       return;
     }
-    onSave(formData);
+    if (isEdit) {
+      onUpdate(data.id, formData);
+    } else {
+      onSave(formData);
+    }
   };
 
   return (
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
       <DialogTitle>
-        {isEdit ? "Cập nhật tòa nhà" : "Thêm tòa nhà mới"}
+        {isEdit ? "Cập nhật tòa nhàaaa" : "Thêm tòa nhà mới"}
       </DialogTitle>
       <DialogContent dividers>
         <Grid container spacing={2.5}>
@@ -156,4 +167,4 @@ const AreaFormDialog = ({ open, onClose, onSave, data, isEdit }) => {
   );
 };
 
-export default AreaFormDialog;
+export default BuildingFormDialog;

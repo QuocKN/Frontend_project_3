@@ -19,6 +19,7 @@ import {
   Router,
 } from "@mui/icons-material";
 import DeviceDialog from "./Dialogs/DeviceDialog";
+import DeviceLogDialog from "./Dialogs/DeviceLogDialog";
 import api from "../../apis/api";
 import { toast } from "react-hot-toast";
 
@@ -43,6 +44,10 @@ const DeviceManagement = () => {
     open: false,
     isEdit: false,
     data: null,
+  });
+  const [logDialog, setLogDialog] = useState({
+    open: false,
+    device: null,
   });
 
   // Tải danh sách thiết bị từ API
@@ -75,24 +80,46 @@ const DeviceManagement = () => {
     {
       field: "stt",
       headerName: "STT",
-      width: 60,
+      width: 70,
       sortable: false,
+      align: "center",
+      headerAlign: "center",
       renderCell: (params) => {
         const sortedIds = gridSortedRowIdsSelector(params.api.state);
         return sortedIds.indexOf(params.id) + 1;
       },
     },
-    { field: "name", headerName: "Tên thiết bị", flex: 1 },
-    { field: "location", headerName: "Vị trí", flex: 1 },
+    {
+      field: "name",
+      headerName: "Tên thiết bị",
+      flex: 1.5,
+      minWidth: 150,
+      align: "center",
+      headerAlign: "center",
+    },
+    {
+      field: "location",
+      headerName: "Vị trí",
+      flex: 1.5,
+      minWidth: 150,
+      align: "center",
+      headerAlign: "center",
+    },
     {
       field: "roomCode",
       headerName: "Phòng",
-      width: 160,
+      flex: 1,
+      minWidth: 100,
+      align: "center",
+      headerAlign: "center",
     },
     {
       field: "status",
       headerName: "Trạng thái",
-      width: 130,
+      flex: 1,
+      minWidth: 120,
+      align: "center",
+      headerAlign: "center",
       renderCell: (params) => (
         <Chip
           label={params.value || "N/A"}
@@ -105,16 +132,21 @@ const DeviceManagement = () => {
     {
       field: "lastHeartbeat",
       headerName: "Ping cuối",
-      width: 160,
-      valueFormatter: (params) => formatHeartbeat(params?.value),
+      flex: 1.2,
+      minWidth: 140,
+      align: "center",
+      headerAlign: "center",
+      valueGetter: (params) => formatHeartbeat(params),
     },
     {
       field: "actions",
       headerName: "Thao tác",
       width: 200,
+      align: "center",
+      headerAlign: "center",
       renderCell: (params) => (
-        <Stack direction="row" spacing={1}>
-          <Tooltip title="Sửa cấu hình">
+        <Stack direction="row" spacing={1} justifyContent="center">
+          <Tooltip title="Chi tiết">
             <IconButton
               size="small"
               color="primary"
@@ -126,7 +158,11 @@ const DeviceManagement = () => {
             </IconButton>
           </Tooltip>
           <Tooltip title="Xem Log">
-            <IconButton size="small" color="info">
+            <IconButton
+              size="small"
+              color="info"
+              onClick={() => setLogDialog({ open: true, device: params.row })}
+            >
               <History fontSize="small" />
             </IconButton>
           </Tooltip>
@@ -185,12 +221,27 @@ const DeviceManagement = () => {
         </Button>
       </Stack>
 
-      <Paper sx={{ height: 500, width: "100%", boxShadow: 3 }}>
+      <Paper
+        sx={{
+          height: 500,
+          width: "100%",
+          boxShadow: 3,
+          borderRadius: 2,
+          overflow: "hidden",
+        }}
+      >
         <DataGrid
           rows={devices}
           columns={columns}
           getRowId={(row) => row?.id ?? row?.deviceId}
           disableSelectionOnClick
+          sx={{
+            "& .MuiDataGrid-cell": {
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            },
+          }}
         />
       </Paper>
 
@@ -240,6 +291,12 @@ const DeviceManagement = () => {
             setDialog({ ...dialog, open: false });
           }
         }}
+      />
+
+      <DeviceLogDialog
+        open={logDialog.open}
+        onClose={() => setLogDialog({ open: false, device: null })}
+        device={logDialog.device}
       />
     </Box>
   );

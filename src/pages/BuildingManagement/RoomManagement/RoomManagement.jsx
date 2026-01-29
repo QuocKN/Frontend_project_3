@@ -92,12 +92,29 @@ const RoomManagement = ({ floor, onBack }) => {
   };
 
   const columns = [
-    { field: "code", headerName: "Mã phòng", width: 100 },
-    { field: "name", headerName: "Tên phòng", flex: 1 },
+    {
+      field: "code",
+      headerName: "Mã phòng",
+      flex: 1,
+      minWidth: 100,
+      align: "center",
+      headerAlign: "center",
+    },
+    {
+      field: "name",
+      headerName: "Tên phòng",
+      flex: 1.5,
+      minWidth: 120,
+      align: "center",
+      headerAlign: "center",
+    },
     {
       field: "status",
       headerName: "Trạng thái",
-      width: 120,
+      flex: 1,
+      minWidth: 100,
+      align: "center",
+      headerAlign: "center",
       renderCell: (p) => (
         <Typography
           variant="body2"
@@ -114,8 +131,10 @@ const RoomManagement = ({ floor, onBack }) => {
       field: "actions",
       headerName: "Thao tác",
       width: 100,
+      align: "center",
+      headerAlign: "center",
       renderCell: (params) => (
-        <Stack direction="row">
+        <Stack direction="row" justifyContent="center">
           <Tooltip title="Sửa">
             <IconButton
               size="small"
@@ -166,6 +185,13 @@ const RoomManagement = ({ floor, onBack }) => {
         disableSelectionOnClick
         getRowId={(row) => row.id}
         hideFooter
+        sx={{
+          "& .MuiDataGrid-cell": {
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          },
+        }}
       />
 
       <RoomFormDialog

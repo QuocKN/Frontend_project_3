@@ -57,7 +57,7 @@ const FloorFormDialog = ({ open, onClose, onSave, data, isEdit }) => {
   };
 
   return (
-    <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
+    <Dialog open={open} onClose={onClose}>
       <DialogTitle>{isEdit ? "Cập nhật tầng" : "Thêm tầng mới"}</DialogTitle>
       <DialogContent dividers>
         <Grid container spacing={2.5}>

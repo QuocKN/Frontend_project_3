@@ -77,24 +77,33 @@ const DeviceDialog = ({ open, onClose, onSave, data, isEdit }) => {
   };
 
   return (
-    <Dialog open={open} onClose={onClose} fullWidth maxWidth="xs">
+    <Dialog open={open} onClose={onClose} maxWidth={false}>
       <DialogTitle>
         {isEdit ? "Cấu hình thiết bị" : "Đăng ký thiết bị mới"}
       </DialogTitle>
+
       <DialogContent dividers>
-        <Grid container spacing={2} sx={{ mt: 0.5 }}>
-          <Grid item xs={12}>
+        <Grid
+          container
+          spacing={2.5}
+          sx={{ width: "fit-content", maxWidth: 470 }}
+        >
+          {/* ===== Mã định danh & Tên thiết bị ===== */}
+          <Grid item xs={12} sm={6}>
             <TextField
               fullWidth
               name="deviceId"
               label="Mã định danh (deviceId)"
               value={form.deviceId}
               onChange={handleChange}
-              disabled={isEdit} // Thường ID không cho sửa
+              disabled={isEdit}
               placeholder="Ví dụ: B1-101"
+              size="small"
+              sx={{ width: 222 }}
             />
           </Grid>
-          <Grid item xs={12}>
+
+          <Grid item xs={12} sm={6}>
             <TextField
               fullWidth
               name="name"
@@ -102,9 +111,13 @@ const DeviceDialog = ({ open, onClose, onSave, data, isEdit }) => {
               value={form.name}
               onChange={handleChange}
               placeholder="Ví dụ: Cổng chính Tầng 1"
+              size="small"
+              sx={{ width: 222 }}
             />
           </Grid>
-          <Grid item xs={12}>
+
+          {/* ===== Mô tả vị trí & Phòng ===== */}
+          <Grid item xs={12} sm={6}>
             <TextField
               fullWidth
               name="location"
@@ -112,8 +125,11 @@ const DeviceDialog = ({ open, onClose, onSave, data, isEdit }) => {
               value={form.location}
               onChange={handleChange}
               placeholder="Ví dụ: Tòa nhà B1, Đại học Bách Khoa"
+              size="small"
+              sx={{ width: 222 }}
             />
           </Grid>
+
           <Grid item xs={12} sm={6}>
             <Autocomplete
               options={rooms}
@@ -131,15 +147,20 @@ const DeviceDialog = ({ open, onClose, onSave, data, isEdit }) => {
                   roomCode: newVal?.code || newVal?.roomCode || "",
                 }));
               }}
+              size="small"
               renderInput={(params) => (
                 <TextField
                   {...params}
                   label="Phòng (roomCode)"
                   placeholder="Chọn phòng"
+                  size="small"
+                  sx={{ width: 222 }}
                 />
               )}
             />
           </Grid>
+
+          {/* ===== Trạng thái ===== */}
           <Grid item xs={12} sm={6}>
             <TextField
               select
@@ -148,6 +169,8 @@ const DeviceDialog = ({ open, onClose, onSave, data, isEdit }) => {
               label="Trạng thái"
               value={form.status}
               onChange={handleChange}
+              size="small"
+              sx={{ width: 222 }}
             >
               <MenuItem value="Online">Online</MenuItem>
               <MenuItem value="Offline">Offline</MenuItem>
@@ -156,6 +179,7 @@ const DeviceDialog = ({ open, onClose, onSave, data, isEdit }) => {
           </Grid>
         </Grid>
       </DialogContent>
+
       <DialogActions>
         <Button onClick={onClose}>Hủy</Button>
         <Button variant="contained" onClick={() => onSave(form)}>
